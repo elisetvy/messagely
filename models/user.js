@@ -20,8 +20,10 @@ class User {
                           password,
                           first_name,
                           last_name,
-                          phone)
-      VALUES ($1, $2, $3, $4, $5)
+                          phone,
+                          join_at,
+                          last_login_at)
+      VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
       RETURNING username, password, first_name, last_name, phone`,
       [username, hashedPassword, first_name, last_name, phone]
     );
@@ -38,7 +40,7 @@ class User {
       WHERE username = $1`,
       [username]
     );
-    const user = results.rows[0];
+    const user = result.rows[0];
 
     if (user) {
       return await bcrypt.compare(password, user.password);
@@ -110,7 +112,7 @@ class User {
   static async messagesFrom(username) {
     const result = await db.query(
       `SELECT m.id,
-            m.from_username
+            m.from_username,
             m.to_username,
             t.first_name AS to_first_name,
             t.last_name AS to_last_name,
@@ -151,6 +153,38 @@ class User {
    */
 
   static async messagesTo(username) {
+    const result = await db.query(
+      `SELECT m.id,
+            m.from_username,
+            m.to_username,
+            f.first_name AS from_first_name,
+            f.last_name AS from_last_name,
+            f.phone AS from_phone,
+            m.body,
+            m.sent_at,
+            m.read_at
+      FROM messages AS m
+            JOIN users AS f ON m.from_username = f.username
+      WHERE m.to_username = $1`,
+      [username]
+    );
+
+    const messages = result.rows;
+
+    if (!messages) throw new NotFoundError(`No messages to this user: ${username}`);
+
+    return messages.map(m => ({
+      id: m.id,
+      from_user: {
+        username: m.from_username,
+        first_name: m.from_first_name,
+        last_name: m.from_last_name,
+        phone: m.from_phone,
+      },
+      body: m.body,
+      sent_at: m.sent_at,
+      read_at: m.read_at,
+    }));
   }
 }
 
