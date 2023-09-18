@@ -36,8 +36,8 @@ class User {
   static async authenticate(username, password) {
     const result = await db.query(
       `SELECT password
-      FROM users
-      WHERE username = $1`,
+          FROM users
+          WHERE username = $1`,
       [username]
     );
     const user = result.rows[0];
@@ -54,9 +54,9 @@ class User {
   static async updateLoginTimestamp(username) {
     const result = await db.query(
       `UPDATE users
-      SET last_login_at = current_timestamp
-      WHERE username = $1
-      RETURNING username`,
+        SET last_login_at = current_timestamp
+        WHERE username = $1
+        RETURNING username`,
       [username]
     );
 
