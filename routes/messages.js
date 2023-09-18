@@ -20,17 +20,16 @@ const Message = require("../models/message");
  *
  **/
 
-router.get("/:id", ensureLoggedIn, async function(req, res, next) {
-  const { id } = req.params;
-  const message = await Message.get(id);
-  const currentUser = res.locals.user;
+router.get("/:id", async function(req, res, next) {
+  const message = await Message.get(req.params.id);
+  const { username } = res.locals.user;
 
-  if (message.to_user.username === currentUser.username||
-    message.from_user.username === currentUser.username) {
-      return res.json({ message })
-    } else {
+  if (message.to_user.username !== username &&
+    message.from_user.username !== username) {
       throw new UnauthorizedError();
     }
+
+  return res.json({ message });
 })
 
 
@@ -62,16 +61,16 @@ router.post("/", ensureLoggedIn, async function(req, res, next) {
 
 router.post("/:id/read", ensureLoggedIn, async function(req, res, next) {
   const { id } = req.params;
-  const currentUser = res.locals.user;
+  const { username } = res.locals.user;
 
   const message = await Message.get(id);
 
-  if (message.to_user.username === currentUser.username) {
+  if (message.to_user.username !== username) {
+    throw new UnauthorizedError();
+  } else {
     const message = await Message.markRead(id);
 
     return res.json({ message });
-  } else {
-    throw new UnauthorizedError();
   }
 })
 
