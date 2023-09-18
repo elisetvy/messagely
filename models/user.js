@@ -42,11 +42,7 @@ class User {
     );
     const user = result.rows[0];
 
-    if (user) {
-      return await bcrypt.compare(password, user.password);
-    }
-
-    throw new UnauthorizedError("Invalid user/password");
+    return user && await bcrypt.compare(password, user.password);
   }
 
   /** Update last_login_at for user */
@@ -71,7 +67,8 @@ class User {
   static async all() {
     const result = await db.query(
       `SELECT username, first_name, last_name
-      FROM users`
+            FROM users
+            ORDER BY username`
     );
 
     return result.rows;
@@ -88,9 +85,14 @@ class User {
 
   static async get(username) {
     const result = await db.query(
-      `SELECT username, first_name, last_name, phone, join_at, last_login_at
-      FROM users
-      WHERE username = $1`,
+      `SELECT username,
+              first_name,
+              last_name,
+              phone,
+              join_at,
+              last_login_at
+        FROM users
+        WHERE username = $1`,
       [username]
     );
 
@@ -114,9 +116,9 @@ class User {
       `SELECT m.id,
             m.from_username,
             m.to_username,
-            t.first_name AS to_first_name,
-            t.last_name AS to_last_name,
-            t.phone AS to_phone,
+            t.first_name,
+            t.last_name,
+            t.phone,
             m.body,
             m.sent_at,
             m.read_at
@@ -134,9 +136,9 @@ class User {
       id: m.id,
       to_user: {
         username: m.to_username,
-        first_name: m.to_first_name,
-        last_name: m.to_last_name,
-        phone: m.to_phone,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        phone: m.phone,
       },
       body: m.body,
       sent_at: m.sent_at,
@@ -157,9 +159,9 @@ class User {
       `SELECT m.id,
             m.from_username,
             m.to_username,
-            f.first_name AS from_first_name,
-            f.last_name AS from_last_name,
-            f.phone AS from_phone,
+            f.first_name,
+            f.last_name,
+            f.phone,
             m.body,
             m.sent_at,
             m.read_at
@@ -177,9 +179,9 @@ class User {
       id: m.id,
       from_user: {
         username: m.from_username,
-        first_name: m.from_first_name,
-        last_name: m.from_last_name,
-        phone: m.from_phone,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        phone: m.phone,
       },
       body: m.body,
       sent_at: m.sent_at,
