@@ -87,6 +87,7 @@ describe("Users Routes Test", function () {
     });
   });
 
+
   describe("POST /messages/", function () {
     test("getting message by id", async function () {
       let response = await request(app)
@@ -132,6 +133,33 @@ describe("Users Routes Test", function () {
         .post("/messages/")
         .query({ _token: testUser1Token });
       expect(response.statusCode).toEqual(400);
+    });
+  });
+
+
+  describe("POST /messages/:id/read", function () {
+    test("marks a message as read", async function () {
+      let response = await request(app)
+        .post("/messages/2/read")
+        .query({ _token: testUser1Token })
+      expect(response.body).toEqual({ message: {
+        id: expect.any(Number),
+        read_at: expect.any(String)
+        }});
+      expect(response.statusCode).toEqual(200);
+    });
+
+    test("returns 401 when not message recipient", async function () {
+      let response = await request(app)
+      .post("/messages/2/read")
+      .query({ _token: "WRONG" })
+    expect(response.statusCode).toEqual(401);
+    });
+
+    test("returns 401 when logged out", async function () {
+      let response = await request(app)
+        .post("/messages/2/read")
+      expect(response.statusCode).toEqual(401);
     });
   });
 });
