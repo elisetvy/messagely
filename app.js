@@ -4,6 +4,7 @@
 
 
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const { authenticateJWT } = require("./middleware/auth");
 
@@ -30,6 +31,13 @@ app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
 
+app.use("/static", express.static(path.join(__dirname, "/static")));
+
+
+/** Homepage: renders index.html */
+app.get("/", function (req, res, next) {
+  return res.sendFile(path.join(__dirname, "/templates/index.html"));
+});
 
 /** 404 handler: matches unmatched routes; raises NotFoundError. */
 app.use(function (req, res, next) {
