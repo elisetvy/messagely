@@ -20,7 +20,7 @@ const Message = require("../models/message");
  *
  **/
 
-router.get("/:id", async function(req, res, next) {
+router.get("/:id", ensureLoggedIn, async function(req, res, next) {
   const message = await Message.get(req.params.id);
   const { username } = res.locals.user;
 
