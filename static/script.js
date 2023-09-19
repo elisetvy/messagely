@@ -1,24 +1,14 @@
 "use strict";
 // manage what user sees
 
-let currentToken;
-
-async function processSubmit(evt) {
+async function processRegister(evt) {
   evt.preventDefault();
-  if (evt.target) {
-    processRegister();
-  } else {
-    processLogin();
-  }
-}
 
-
-async function processRegister() {
-  const username = document.querySelector("#username-input").value;
-  const password = document.querySelector("#password-input").value;
-  const firstName = document.querySelector("#first-name-input").value;
-  const lastName = document.querySelector("#last-name-input").value;
-  const phone = document.querySelector("#phone-input").value;
+  const username = $("#username-input").val();
+  const password = $("#password-input").val();
+  const firstName = $("#first-name-input").val();
+  const lastName = $("#last-name-input").val();
+  const phone = $("#phone-input").val();
 
   const res = await fetch("/auth/register", {
     method: "POST",
@@ -32,12 +22,16 @@ async function processRegister() {
     headers: { "Content-Type": "application/json" }
   });
 
-  currentToken = await res.json();
+  const token = JSON.stringify(await res.json());
+  localStorage.setItem("currentToken", token);
+  console.log(token)
 }
 
-async function processLogin() {
-  const username = document.querySelector("#username-input").value;
-  const password = document.querySelector("#password-input").value;
+async function processLogin(evt) {
+  evt.preventDefault();
+
+  const username =$("#username-input").val();
+  const password = $("#password-input").val();
 
   const res = await fetch("/auth/login", {
     method: "POST",
@@ -48,21 +42,52 @@ async function processLogin() {
     headers: { "Content-Type": "application/json" }
   });
 
-  currentToken = await res.json();
+  const token = JSON.stringify(await res.json());
+  localStorage.setItem("currentToken", token);
+  console.log(token)
+}
 
+function showHome(evt) {
+  evt.preventDefault();
+  $("main").children().hide();
+
+  const template = $("#home-page").html();
+  const templateClone = $(template);
+  $("main").append(templateClone);
+}
+
+function showRegister(evt) {
+  evt.preventDefault();
+  $("main").children().hide();
+
+  const template = $("#register-page").html();
+  const templateClone = $(template);
+  $("main").append(templateClone);
+}
+
+function showLogin(evt) {
+  evt.preventDefault();
+  $("main").children().hide();
+
+  const template = $("#login-page").html();
+  const templateClone = $(template);
+  $("main").append(templateClone);
 }
 
 
-if (!currentToken) {
-  const template = document.querySelector("#register-page");
-  const clone = template.content.cloneNode(true);
-  document.body.appendChild(clone);
+if (!localStorage.getItem("currentToken")) {
+  const template = $("#home-page").html();
+  const templateClone = $(template);
+  $("main").append(templateClone);
 } else {
-  const template = document.querySelector("#messages-page");
-  const clone = template.content.cloneNode(true);
-  document.body.appendChild(clone);
+  const template = $("#messages-page").html();
+  const templateClone = $(template);
+  $("main").append(templateClone);
 }
 
 
-
-document.body.addEventListener("submit", processSubmit);
+$("main").on("submit", "#register-form", processRegister);
+$("main").on("submit", "#login-form", processLogin);
+$("#home-link").on("click", showHome);
+$("#register-link").on("click", showRegister);
+$("#login-link").on("click", showLogin);
